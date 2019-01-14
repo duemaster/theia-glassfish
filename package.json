@@ -9,6 +9,6 @@
     "lerna": "2.4.0"
   },
   "workspaces": [
-    "glassfish", "browser-app", "electron-app"
+    "glassfish", "browser-app"
   ]
 }

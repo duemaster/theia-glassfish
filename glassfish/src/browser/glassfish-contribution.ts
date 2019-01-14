@@ -8,15 +8,19 @@ import {
     MAIN_MENU_BAR,
     SelectionService,
     Command,
-    CommandService
+    //CommandService
 } from "@theia/core/lib/common";
+
 import URI from "@theia/core/lib/common/uri";
 import { UriAwareCommandHandler } from '@theia/core/lib/common/uri-command-handler';
 import { FileSystem } from '@theia/filesystem/lib/common';
 import { TerminalService } from '@theia/terminal/lib/browser/base/terminal-service';
 import { MiniBrowserOpenHandler } from "@theia/mini-browser/lib/browser/mini-browser-open-handler"
+
 import { FrontendApplicationStateService } from "@theia/core/lib/browser/frontend-application-state";
 import { FrontendApplicationContribution, FrontendApplication } from "@theia/core/lib/browser";
+import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
+import { TerminalWidget } from "@theia/terminal/lib/browser/base/terminal-widget";
 
 
 export namespace GlassFishMenu {
@@ -89,6 +93,11 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
     //Need to Save in Cookie Later + Periodic Refresh
     isServerStarted: boolean = false;
 
+    /** last directory element under which we look for config */
+    protected readonly ConfigFilePath = '.virtual-beans';
+    /** task configuration file name */
+    protected readonly ConfigFileName = 'config.json';
+
     constructor(
         @inject(MessageService) private readonly messageService: MessageService,
         @inject(FileSystem) protected readonly fileSystem: FileSystem,
@@ -96,22 +105,43 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
         @inject(TerminalService) private readonly terminalService: TerminalService,
         @inject(MiniBrowserOpenHandler) protected readonly openHandler: MiniBrowserOpenHandler,
         @inject(FrontendApplicationStateService) private readonly stateService: FrontendApplicationStateService,
-        @inject(CommandService) private readonly commandService: CommandService
+        @inject(WorkspaceService) private readonly workSpaceService: WorkspaceService,
+        //@inject(CommandService) private readonly commandService: CommandService
     ) { }
 
     async onStart(app: FrontendApplication) {
         this.stateService.reachedState('ready').then(
             async (a) => {
-                //Start Server
-                await this.commandService.executeCommand(GlassFishCommands.START_SERVER.id);
-                //Add JDBC
-                await this.commandService.executeCommand(GlassFishCommands.BUILD_PROJECT.id);
-                //Build Project
-                // await this.commandService.executeCommand(GlassFishCommands.ADD_JDBC_RESOURCE.id);
-                //Deploy Project
-                // await this.commandService.executeCommand(GlassFishCommands.DEPL.id);
+                // Start Server
+                console.log(this.isServerStarted);
+                //await this.commandService.executeCommand(GlassFishCommands.START_SERVER.id);
+                let terminal = await this.runTerminalCommand("asadmin start-database");
+                await this.runTerminalCommand("asadmin start-domain", terminal);
+                this.isServerStarted = true;
 
-                // this.openHandler.openPreview("localhost:8080//SimpleBlog-war/");
+                await sleep(5000);
+
+                // Add JDBC
+                // await this.commandService.executeCommand(GlassFishCommands.BUILD_PROJECT.id);
+                const jdbc_resource_location = await this.getConfigFileValues("resourceFile");
+                await this.runTerminalCommand(`asadmin add-resources ${jdbc_resource_location}`, terminal);
+
+                await sleep(5000);
+
+                // Build Project
+                //await this.commandService.executeCommand(GlassFishCommands.BUILD_PROJECT.id);
+                await this.runTerminalCommand(`bash ./.virtual-beans/build_app.sh`, terminal);
+
+                await sleep(5000);
+
+                // Deploy Project
+                const war_file_location = await this.getConfigFileValues("warFile");
+                await this.runTerminalCommand(`asadmin deploy --force ${war_file_location}`, terminal);
+
+                await sleep(5000);
+
+                //Open Browser
+                this.openHandler.openPreview(await this.getWarUrl());
             }
         )
     }
@@ -120,17 +150,19 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
 
         registry.registerCommand(GlassFishCommands.START_SERVER, {
             execute: async () => {
-                this.messageService.info("Starting GlassFish Server");
+                //this.messageService.info("Starting GlassFish Server");
 
                 const terminalWidget = await this.terminalService.newTerminal({});
                 await terminalWidget.start();
-                await this.terminalService.activateTerminal(terminalWidget);
 
-                await new Promise(resolve => {
-                    setTimeout(resolve, 1000);
-                })
+                // Shows the terminal on the front
+                // await this.terminalService.activateTerminal(terminalWidget);
 
-                await terminalWidget.sendText("asadmin start-domain --verbose && exit 1\n")
+                await sleep(1000);
+
+                // await terminalWidget.sendText("bash ./.virtual-beans/start_server.sh && exit 1\n");
+                await terminalWidget.sendText("asadmin start-database \n");
+                await terminalWidget.sendText("asadmin start-domain \n");
 
                 this.isServerStarted = true;
                 this.messageService.info("GlassFish Server Started Successfully");
@@ -140,17 +172,17 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
 
         registry.registerCommand(GlassFishCommands.STOP_SERVER, {
             execute: async () => {
-                this.messageService.info("Stopping GlassFish Server");
+                //this.messageService.info("Stopping GlassFish Server");
 
                 const terminalWidget = await this.terminalService.newTerminal({});
                 await terminalWidget.start();
                 await this.terminalService.activateTerminal(terminalWidget);
 
-                await new Promise(resolve => {
-                    setTimeout(resolve, 1000);
-                })
+                await sleep(1000);
 
-                await terminalWidget.sendText("asadmin stop-domain && exit 1\n")
+                // await terminalWidget.sendText("bash ./.virtual-beans/stop_server.sh && exit 1\n");
+                await terminalWidget.sendText("asadmin stop-domain \n");
+                await terminalWidget.sendText("asadmin stop-database \n");
 
                 this.isServerStarted = false;
                 this.messageService.info("GlassFish Server Stopped Successfully")
@@ -162,7 +194,9 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
             execute: async uri => {
                 //Returns File Stat
                 const stat: any = await this.fileSystem.getFileStat(uri.toString());
-                this.messageService.info("Opening: " + stat.uri);
+                console.log(stat);
+
+                this.messageService.info("Not yet implemented");
             },
             isVisible: uri => {
                 return uri.path.ext == '.jar'
@@ -172,7 +206,9 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
         registry.registerCommand(GlassFishCommands.UNDEPLOY_JAR, new UriAwareCommandHandler<URI>(this.selectionService, {
             execute: async uri => {
                 const stat = await this.fileSystem.getFileStat(uri.toString());
-                this.messageService.info("Undeploy: " + stat);
+                console.log(stat);
+
+                this.messageService.info("Not yet implemented");
             },
             isVisible: uri => {
                 return uri.path.ext == '.jar'
@@ -189,14 +225,14 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
                     setTimeout(resolve, 1000);
                 })
 
-                await terminalWidget.sendText(`asadmin deploy --force ${uri.path} || \\bin\\true && exit 1\n`);
+                //await terminalWidget.sendText(`bash ./virtual-beans/deploy_app.sh ${uri.path}\n`);
+                await terminalWidget.sendText(`asadmin deploy --force ${uri.path}\n`);
 
-                await new Promise(resolve => {
-                    setTimeout(resolve, 1000);
-                })
+                await sleep(1000);
 
                 //Open Browser to target URL
-                this.openHandler.openPreview("localhost:8080//SimpleBlog-war/");
+                let targetUrl = await this.getWarUrl();
+                this.openHandler.openPreview(targetUrl);
                 this.messageService.info("Application Deployed Successfully");
             },
             isVisible: uri => {
@@ -210,11 +246,10 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
                 await terminalWidget.start();
                 await this.terminalService.activateTerminal(terminalWidget);
 
-                await new Promise(resolve => {
-                    setTimeout(resolve, 1000);
-                })
+                await sleep(1000);
 
-                await terminalWidget.sendText(`asadmin undeploy ${uri.path} && exit 1\n`);
+                //await terminalWidget.sendText(`bash ./.virtual-beans/undeploy_app.sh ${uri.path}\n`);
+                await terminalWidget.sendText(`asadmin undeploy ${uri.path}\n`);
             },
             isVisible: uri => {
                 //return !uri.path.ext && uri.path.toString().endsWith(".war");
@@ -233,7 +268,8 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
                     setTimeout(resolve, 1000);
                 })
 
-                await terminalWidget.sendText(`asadmin add-resources ${uri.path} || \\bin\\true && exit 1\n`)
+                //await terminalWidget.sendText(`bash ./.virtual-beans/add_jdbc_resource.sh ${uri.path}\n`)
+                await terminalWidget.sendText(`asadmin add-resource ${uri.path}`);
             },
             isVisible: uri => {
                 return uri.path.ext == '.xml';
@@ -245,16 +281,66 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
                 // Deploy Build Project
                 const terminalWidget = await this.terminalService.newTerminal({});
                 await terminalWidget.start();
-                await this.terminalService.activateTerminal(terminalWidget);
 
+                await this.terminalService.activateTerminal(terminalWidget);
                 await new Promise(resolve => {
                     setTimeout(resolve, 1000);
                 })
 
-                await terminalWidget.sendText(`bash ./gradlew build\n`)
+                await terminalWidget.sendText(`bash ./.virtual-beans/build_app.sh\n`);
             },
             isEnabled: () => true
         })
+    }
+
+    /**
+    * Helper Methods
+    */
+
+    async runTerminalCommand(command: string, terminalWidget?: TerminalWidget): Promise<TerminalWidget> {
+        if (!terminalWidget) {
+            terminalWidget = await this.terminalService.newTerminal({});
+            await terminalWidget.start();
+
+            await this.terminalService.activateTerminal(terminalWidget);
+            await sleep(1000);
+        }
+
+        await terminalWidget.sendText(`${command} \n`);
+        return terminalWidget;
+    }
+
+    async getWarUrl() {
+        let currentHost = window.location.hostname;
+        let targetWarUrl = await this.getConfigFileValues("targetUrl");
+
+        if (currentHost.includes("web")) {
+            let serverUrl = window.location.hostname.replace("ide", "web");
+            let serverPort = window.location.port;
+            return `${serverUrl}:${serverPort}/${targetWarUrl}`;
+        } else {
+            return `${currentHost}:8080/${targetWarUrl}`;
+        }
+
+    }
+
+    async getConfigFileValues(name: string) {
+        try {
+            //Parse Config File
+            const roots = await this.workSpaceService.roots;
+            const root = roots[0];
+            let configFileUri = new URI(root.uri).resolve(this.ConfigFilePath).resolve(this.ConfigFileName).toString();
+
+            const configFileStat = await this.fileSystem.resolveContent(configFileUri);
+            const configFileContent = configFileStat.content;
+            const config = JSON.parse(configFileContent);
+
+            return config[name];
+        } catch (err) {
+            console.log(err);
+            this.messageService.error("Error getting value from Config File");
+            return Promise.reject(err);
+        }
     }
 }
 
@@ -306,3 +392,12 @@ export class GlassFishExtensionMenuContribution implements MenuContribution {
 
     }
 }
+
+async function sleep(duration: number) {
+
+    await new Promise(resolve => {
+        setTimeout(resolve, duration);
+    })
+
+    return;
+} 

@@ -392,21 +392,7 @@
     node-pty "0.7.6"
     string-argv "^0.1.1"
 
-"@theia/task@latest":
-  version "0.3.18"
-  resolved "https://registry.yarnpkg.com/@theia/task/-/task-0.3.18.tgz#514e73f609da4f06ea2cc42fe036bd1221ef5460"
-  integrity sha512-heCjn/JbKB2W4eTy9YEp/jV7D+b1JY0KG+k6VmPfdvMpt4H0GeO/2dMSmf3SdV3RKq/fmEr9WHBOZKGelz+Bew==
-  dependencies:
-    "@theia/core" "^0.3.18"
-    "@theia/filesystem" "^0.3.18"
-    "@theia/markers" "^0.3.18"
-    "@theia/process" "^0.3.18"
-    "@theia/terminal" "^0.3.18"
-    "@theia/variable-resolver" "^0.3.18"
-    "@theia/workspace" "^0.3.18"
-    jsonc-parser "^2.0.2"
-
-"@theia/terminal@^0.3.18", "@theia/terminal@latest":
+"@theia/terminal@latest":
   version "0.3.18"
   resolved "https://registry.yarnpkg.com/@theia/terminal/-/terminal-0.3.18.tgz#9630e9c360c40ca1845396cf4f1cba94c009a9db"
   integrity sha512-6lMDrG0AkbJD6gmKlahAp8eE3qufQANVUGiO8bSJyFkcOXT3UgSjGdr/k6ZzRo2hXhcAzDoQ/lVxRA5NhLe0Pg==
