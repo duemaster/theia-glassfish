@@ -1,17 +1,17 @@
 {
-  "name": "glassfish",
+  "name": "@virtual-beans/glassfish",
   "keywords": [
     "theia-extension"
   ],
-  "version": "0.0.0",
+  "version": "0.0.1",
   "files": [
     "lib",
     "src"
   ],
   "dependencies": {
     "@theia/core": "latest",
-    "@theia/task": "latest",
-    "@theia/mini-browser": "latest"
+    "@theia/mini-browser": "latest",
+    "@theia/task": "latest"
   },
   "devDependencies": {
     "rimraf": "latest",
