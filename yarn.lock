@@ -313,6 +313,19 @@
   dependencies:
     "@theia/core" "^0.3.18"
 
+"@theia/mini-browser@latest":
+  version "0.3.18"
+  resolved "https://registry.yarnpkg.com/@theia/mini-browser/-/mini-browser-0.3.18.tgz#306b8740289362b56027d45b872d1db9aaefbfed"
+  integrity sha512-H2s2Wl8RyT7hlgeEztj7TM9Ao0ynCSQnu7/FIB2ouKOBpOfLBkzPDmMrL2KBNBAbUmCRgfQphDW2hin1zhZrvQ==
+  dependencies:
+    "@theia/core" "^0.3.18"
+    "@theia/filesystem" "^0.3.18"
+    "@types/fs-extra" "^4.0.2"
+    "@types/mime-types" "^2.1.0"
+    fs-extra "^4.0.2"
+    mime-types "^2.1.18"
+    pdfobject "^2.0.201604172"
+
 "@theia/monaco@^0.3.18", "@theia/monaco@latest":
   version "0.3.18"
   resolved "https://registry.yarnpkg.com/@theia/monaco/-/monaco-0.3.18.tgz#af14b35d7786e0255f382c947a754197e5415498"
@@ -379,7 +392,21 @@
     node-pty "0.7.6"
     string-argv "^0.1.1"
 
-"@theia/terminal@latest":
+"@theia/task@latest":
+  version "0.3.18"
+  resolved "https://registry.yarnpkg.com/@theia/task/-/task-0.3.18.tgz#514e73f609da4f06ea2cc42fe036bd1221ef5460"
+  integrity sha512-heCjn/JbKB2W4eTy9YEp/jV7D+b1JY0KG+k6VmPfdvMpt4H0GeO/2dMSmf3SdV3RKq/fmEr9WHBOZKGelz+Bew==
+  dependencies:
+    "@theia/core" "^0.3.18"
+    "@theia/filesystem" "^0.3.18"
+    "@theia/markers" "^0.3.18"
+    "@theia/process" "^0.3.18"
+    "@theia/terminal" "^0.3.18"
+    "@theia/variable-resolver" "^0.3.18"
+    "@theia/workspace" "^0.3.18"
+    jsonc-parser "^2.0.2"
+
+"@theia/terminal@^0.3.18", "@theia/terminal@latest":
   version "0.3.18"
   resolved "https://registry.yarnpkg.com/@theia/terminal/-/terminal-0.3.18.tgz#9630e9c360c40ca1845396cf4f1cba94c009a9db"
   integrity sha512-6lMDrG0AkbJD6gmKlahAp8eE3qufQANVUGiO8bSJyFkcOXT3UgSjGdr/k6ZzRo2hXhcAzDoQ/lVxRA5NhLe0Pg==
@@ -6862,6 +6889,11 @@ pbkdf2@^3.0.3:
     ripemd160 "^2.0.1"
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
+
+pdfobject@^2.0.201604172:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/pdfobject/-/pdfobject-2.1.1.tgz#2949d4d218d130d16b6149c7f7226f0a73400d4a"
+  integrity sha512-QFktTHyjs4q/WhGFfV2RdAbscPdNkyQb/JfFz18cwILvs9ocDiYVFAEh/jgkKGv6my+r4nlbLjwj7BHFKAupHQ==
 
 pend@~1.2.0:
   version "1.2.0"

@@ -1,0 +1,15 @@
+{
+    // Some sample Theia tasks
+    "tasks": [
+        {
+            "label": "Hello",
+            "type": "shell",
+            "cwd": "sleep 10 && echo oo",
+            "command": "bash",
+            "args": [
+                "-c",
+                "echo 1 2 3"
+            ]
+        }
+    ]
+}
