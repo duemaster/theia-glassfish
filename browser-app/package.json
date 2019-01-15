@@ -16,7 +16,7 @@
     "@theia/monaco": "latest",
     "@theia/typescript": "latest",
     "@theia/messages": "latest",
-    "glassfish": "0.0.0"
+    "@virtual-beans/glassfish": "0.0.3"
   },
   "devDependencies": {
     "@theia/cli": "latest"

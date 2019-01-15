@@ -113,7 +113,7 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
         this.stateService.reachedState('ready').then(
             async (a) => {
                 // Start Server
-                console.log(this.isServerStarted);
+                // console.log(`This is ${this.isServerStarted}`);
                 //await this.commandService.executeCommand(GlassFishCommands.START_SERVER.id);
                 let terminal = await this.runTerminalCommand("asadmin start-database");
                 await this.runTerminalCommand("asadmin start-domain", terminal);
@@ -314,7 +314,7 @@ export class GlassFishExtensionCommandContribution implements CommandContributio
         let currentHost = window.location.hostname;
         let targetWarUrl = await this.getConfigFileValues("targetUrl");
 
-        if (currentHost.includes("web")) {
+        if (currentHost.includes("ide")) {
             let serverUrl = window.location.hostname.replace("ide", "web");
             let serverPort = window.location.port;
             return `${serverUrl}:${serverPort}/${targetWarUrl}`;
